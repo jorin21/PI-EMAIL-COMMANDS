@@ -109,6 +109,8 @@ if UnSeen > Read:
                             turnoff(From)
                         elif subject == 'ping':
                             ping(From)
+                        elif subject == 'stopscr':
+                            stop(From)
                         elif subject == 'restartpc':
                             restart(From)
                         else:
