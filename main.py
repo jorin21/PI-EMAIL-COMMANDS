@@ -6,6 +6,7 @@ import paramiko
 import imaplib
 import email
 import os
+import subprocess
 
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy()) 
@@ -48,7 +49,9 @@ def turnoff(From):
 def stop(From):
     if From in users.keys():
         print('Stopping Crontab Updates')
-        os.system('cmd /c "ping localhost"')
+        cmd = 'ping localhost'
+        process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+        output, error = process.communicate()
 def restart(From):
     'restart code here'
 
