@@ -45,8 +45,13 @@ def turnoff(From):
         
     else:
         auth
+def stop(From):
+    if From in users.keys():
+        print('Stopping Crontab Updates')
+        os.system('cmd /c "ping localhost"')
 def restart(From):
     'restart code here'
+
 
 
 
