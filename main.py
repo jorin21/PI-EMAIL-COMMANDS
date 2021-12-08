@@ -10,7 +10,7 @@ import subprocess
 
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy()) 
-load_dotenv('./.env')
+load_dotenv("/home/pi/PI-EMAIL-COMMANDS/.env")
 
 # variables
 username = os.getenv('USERNAME')
