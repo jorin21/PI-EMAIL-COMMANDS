@@ -49,7 +49,7 @@ def turnoff(From):
 def stop(From):
     if From in users.keys():
         print('Stopping Crontab Updates')
-        cmd = 'ping localhost'
+        cmd = 'ping -c 2 localhost'
         process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
         print(output)
