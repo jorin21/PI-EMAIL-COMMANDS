@@ -52,6 +52,7 @@ def stop(From):
         cmd = 'ping localhost'
         process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
+        print(output)
 def restart(From):
     'restart code here'
 
