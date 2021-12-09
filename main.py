@@ -1,3 +1,4 @@
+from logging import NullHandler
 from dotenv import load_dotenv
 from email.header import decode_header
 from time import sleep
@@ -20,7 +21,6 @@ MAC = os.getenv('MACA')
 serv = os.getenv('SERV')
 SSHuser = os.getenv('SSHuser')
 SSHpass = os.getenv('SSHpass')
-auth = 'User not Authenticated'
 
 # authorized users and their identities 
 users = {
@@ -36,53 +36,43 @@ class commandHandler:
         #defines subject and from in the class
         self.subject = subject
         self.From = From
-
-        #list used to check if each command ran properly
-        self.tst = []
+        
+        #used to check if any command ran properly
+        self.tst = 0
+    def check(self,func_name): # function used to check subject and from func_name would be the command name in the email
+        if self.subject == func_name:
+            if self.From in users.keys():
+                self.tst = 1
+                return True
+            else:
+                print('User not Authenticated')
+                return False
 
     #commands start here
     def ping(self):
-        if self.subject == 'ping':
-            if self.From in users.keys():
-                self.tst.append(1) # appends a 1 to the list which is then compared in the run() method
-
-                print('pong')
-            else:
-                print(auth)
-
+        if self.check('ping'):
+            print('pong')
+            
     def turnon(self):
-        if self.subject == 'wakepc':
-            if self.From in users.keys():
-                self.tst.append(1)
-
-                print('Waking PC')
-                send_magic_packet(MAC)
+        if self.check('wakepc'):
+            print('Waking PC')
+            send_magic_packet(MAC)
         
     def turnoff(self):
-        if self.subject == 'sleeppc':
-            if self.From in users.keys():
-                self.tst.append(1)
-
-                print('Sleeping PC')
-                ssh.connect(serv, username=SSHuser, password=SSHpass)
-                ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('shutdown -s -f -t 5')    
-            else:
-                print(auth)
+        if self.check('sleeppc'):
+            print('Sleeping PC')
+            ssh.connect(serv, username=SSHuser, password=SSHpass)
+            ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('shutdown -s -f -t 5')    
         
     def stop(self):
-        if self.subject == 'stopscr':
-            if self.From in users.keys():
-                self.tst.append(1)
-
-                print('Stopping Crontab Updates')
-                cmd = 'ping -c 2 localhost'
-                process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
-                output, error = process.communicate()
+        if self.check('stopscr'):
+            print('Stopping Crontab Updates')
+            cmd = 'ping -c 2 localhost'
+            process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+            output, error = process.communicate()
 
     def restart(self):
-        if self.subject == 'restpc':
-            self.tst.append(1)
-
+        if self.check('restpc'):
             'restart code here'
 
     #commands end here
@@ -94,13 +84,12 @@ class commandHandler:
         self.stop()
         self.restart()
 
-        #list of all functions methods dunder and run methods
-        tst2 = [method for method in dir(commandHandler) if method.startswith('__') is False and method != 'run']
 
-        # compares amt of methods to those that failed
-        if len(self.tst) != len(tst2):
+        # checks if any command was ran
+        if self.tst != 1:
             print('command not found please try again')
 
+commandHandler('chk','jorgeeavila1@gmail.com').run()
 
 #connection
 con = imaplib.IMAP4_SSL(imap_url)
