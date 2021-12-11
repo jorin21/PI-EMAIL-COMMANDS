@@ -11,7 +11,7 @@ import subprocess
 
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy()) 
-load_dotenv("/home/pi/PI-EMAIL-COMMANDS/.env")
+load_dotenv("./.env")
 
 # variables
 username = os.getenv('USERNAME')
@@ -32,11 +32,21 @@ users = {
 
 # command handler v2
 class commandHandler:
-    def __init__(self,subject,From):
+    def __init__(self,subject,From,body):
         #defines subject and from in the class
         self.subject = subject
         self.From = From
-        
+        self.body = body
+        count = 1
+        for line in self.body.split('\n'): #beginning of passphrase checker
+            print(line)
+            if count == 3:
+                if line == 'passcod':
+                    print('allow')
+                else:
+                    print('not allowed')
+            count += 1
+
         #used to check if any command ran properly
         self.tst = 0
     def check(self,func_name): # function used to check subject and from func_name would be the command name in the email
@@ -89,7 +99,9 @@ class commandHandler:
         if self.tst != 1:
             print('command not found please try again')
 
-commandHandler('chk','jorgeeavila1@gmail.com').run()
+
+# commandHandler('testing','1','line 1 \nline 2\npasscode\n').run()
+
 
 #connection
 con = imaplib.IMAP4_SSL(imap_url)
@@ -126,7 +138,7 @@ if UnSeen > Read:
             From = From[1][:-1]
 
             #defines cH object and passes subject,From
-            cH = commandHandler(subject,From)
+            
 
             if msg.is_multipart():
                 for part in msg.walk():
@@ -137,6 +149,7 @@ if UnSeen > Read:
                         body = part.get_payload(decode=True).decode()
                         
                         #run commandhandler
+                        cH = commandHandler(subject,From,body)
                         cH.run()
             
                         
@@ -146,6 +159,7 @@ if UnSeen > Read:
 
             else: #if not multipart
                 body = msg.get_payload(decode=True).decode()
+                cH = commandHandler(subject,From,body)
                 cH.run()
 else:
     print("No New Messages")
