@@ -3,11 +3,14 @@ from dotenv import load_dotenv
 from email.header import decode_header
 from time import sleep
 from wakeonlan import send_magic_packet
+from datetime import datetime
 import paramiko
 import imaplib
 import email
 import os
 import subprocess
+import requests
+import random
 
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy()) 
@@ -21,11 +24,34 @@ MAC = os.getenv('MACA')
 serv = os.getenv('SERV')
 SSHuser = os.getenv('SSHuser')
 SSHpass = os.getenv('SSHpass')
+week = int(datetime.now().strftime('%U'))
+
 
 # authorized users and their identities 
 users = {
     'jorgeeavila1@gmail.com' : 'Jorge Avila'
 }
+
+
+# code to check week and generate new word every week
+with open('timepass.txt', 'r') as txt:
+    txt_read = int(txt.read(2)) # opens and reads the first two characters to check the week
+
+    if week - 1 == txt_read: # if the current week -1 is equal to the week inside of the file then a week has passed
+        r = open('words.txt').read().splitlines()
+        word = random.choice(r) # chooses a random word from the word bank
+            
+        print(word)
+
+        # opens the file as write and rewrites the file with current week and new passphrase
+        with open('timepass.txt', 'w') as txt:
+            txt.write(f'{week} ; {word}')
+    else:
+        print('not new week')
+        
+
+
+
 
 
 
@@ -36,16 +62,11 @@ class commandHandler:
         #defines subject and from in the class
         self.subject = subject
         self.From = From
-        self.body = body
-        count = 1
-        for line in self.body.split('\n'): #beginning of passphrase checker
-            print(line)
-            if count == 3:
-                if line == 'passcod':
-                    print('allow')
-                else:
-                    print('not allowed')
-            count += 1
+        self.body = body.split('\n')
+        line = random.randrange(4)
+        if self.body[line] == word:
+            'code'
+        
 
         #used to check if any command ran properly
         self.tst = 0
