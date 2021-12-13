@@ -1,4 +1,3 @@
-from logging import NullHandler
 from dotenv import load_dotenv
 from email.header import decode_header
 from time import sleep
@@ -9,7 +8,6 @@ import imaplib
 import email
 import os
 import subprocess
-import requests
 import random
 
 ssh = paramiko.SSHClient()
@@ -24,7 +22,7 @@ MAC = os.getenv('MACA')
 serv = os.getenv('SERV')
 SSHuser = os.getenv('SSHuser')
 SSHpass = os.getenv('SSHpass')
-week = int(datetime.now().strftime('%U'))
+week = int(datetime.now().strftime('%U')) + 2
 
 
 # authorized users and their identities 
@@ -40,12 +38,13 @@ with open('timepass.txt', 'r') as txt:
     if week - 1 == txt_read: # if the current week -1 is equal to the week inside of the file then a week has passed
         r = open('words.txt').read().splitlines()
         word = random.choice(r) # chooses a random word from the word bank
-            
+        line = random.randrange(4)
+        print(line)
         print(word)
 
         # opens the file as write and rewrites the file with current week and new passphrase
         with open('timepass.txt', 'w') as txt:
-            txt.write(f'{week} ; {word}')
+            txt.write(f'{week} ; {word} ; {line}')
     else:
         print('not new week')
         
