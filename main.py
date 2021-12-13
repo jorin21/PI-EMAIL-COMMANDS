@@ -15,14 +15,14 @@ ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 load_dotenv("./.env")
 
 # variables
-username = os.getenv('USERNAME')
+username = os.getenv('USERNAME1')
 password = os.getenv('PASSWORD')
 imap_url = os.getenv('IMAPS')
 MAC = os.getenv('MACA')
 serv = os.getenv('SERV')
 SSHuser = os.getenv('SSHuser')
 SSHpass = os.getenv('SSHpass')
-week = int(datetime.now().strftime('%U')) + 2
+week = int(datetime.now().strftime('%U'))
 
 
 # authorized users and their identities 
@@ -30,17 +30,17 @@ users = {
     'jorgeeavila1@gmail.com' : 'Jorge Avila'
 }
 
-
 # code to check week and generate new word every week
 with open('timepass.txt', 'r') as txt:
     txt_read = int(txt.read(2)) # opens and reads the first two characters to check the week
 
     if week - 1 == txt_read: # if the current week -1 is equal to the week inside of the file then a week has passed
+        print('New Week, Changing Line and Passphrase')
         r = open('words.txt').read().splitlines()
         word = random.choice(r) # chooses a random word from the word bank
-        line = random.randrange(4)
-        print(line)
-        print(word)
+        line = random.randrange(5)
+        print(f'New Line #: {line + 1}')
+        print(f'New Word: {word}')
 
         # opens the file as write and rewrites the file with current week and new passphrase
         with open('timepass.txt', 'w') as txt:
@@ -48,6 +48,10 @@ with open('timepass.txt', 'r') as txt:
     else:
         print('not new week')
         
+with open('timepass.txt', 'r') as txt:
+    txt_r = txt.read().split(';')
+    line = int(txt_r[2].strip())
+    passc = txt_r[1].strip()
 
 
 
@@ -57,26 +61,31 @@ with open('timepass.txt', 'r') as txt:
 
 # command handler v2
 class commandHandler:
+    # with open('timepass.txt', 'r') as txt:
+    #     txt_read = txt.read().split(';')
+
     def __init__(self,subject,From,body):
         #defines subject and from in the class
         self.subject = subject
         self.From = From
         self.body = body.split('\n')
-        line = random.randrange(4)
-        if self.body[line] == word:
-            'code'
+
         
 
         #used to check if any command ran properly
         self.tst = 0
     def check(self,func_name): # function used to check subject and from func_name would be the command name in the email
         if self.subject == func_name:
-            if self.From in users.keys():
-                self.tst = 1
-                return True
+            self.tst = 1
+
+            if self.body[line] == passc:
+                if self.From in users.keys():
+                    return True
+                else:
+                    print('User not Authenticated')
+                    return False
             else:
-                print('User not Authenticated')
-                return False
+                print('Incorrect Passphrase or Line')
 
     #commands start here
     def ping(self):
@@ -115,12 +124,12 @@ class commandHandler:
         self.restart()
 
 
-        # checks if any command was ran
+        # checks if any command was found
         if self.tst != 1:
-            print('command not found please try again')
+            print('command not found, please try again')
 
 
-# commandHandler('testing','1','line 1 \nline 2\npasscode\n').run()
+commandHandler('ping','jorgeeavila1@gmail.com','line 1 \ncounselin12g\ncounseling21\npasscode\nbruh').run()
 
 
 #connection
