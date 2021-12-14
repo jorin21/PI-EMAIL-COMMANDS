@@ -2,60 +2,91 @@ from dotenv import load_dotenv
 from email.header import decode_header
 from time import sleep
 from wakeonlan import send_magic_packet
+from datetime import datetime
 import paramiko
 import imaplib
 import email
 import os
 import subprocess
+import random
 
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy()) 
 load_dotenv("/home/pi/PI-EMAIL-COMMANDS/.env")
 
 # variables
-username = os.getenv('USERNAME')
+username = os.getenv('USERNAME1')
 password = os.getenv('PASSWORD')
 imap_url = os.getenv('IMAPS')
 MAC = os.getenv('MACA')
 serv = os.getenv('SERV')
 SSHuser = os.getenv('SSHuser')
 SSHpass = os.getenv('SSHpass')
+week = int(datetime.now().strftime('%U'))
+
 
 # authorized users and their identities 
 users = {
     'jorgeeavila1@gmail.com' : 'Jorge Avila'
 }
 
+# code to check week and generate new word every week
+with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'r') as read_time:
+    week_DB = int(read_time.read(2)) # opens and reads the first two characters to check the week
+
+    if week - 1 == week_DB: # if the current week -1 is equal to the week inside of the file then a week has passed
+        print('New Week, Changing Line and Passphrase\n-----------')
+        r = open('/home/pi/PI-EMAIL-COMMANDS/words.txt').read().splitlines()
+
+        word = random.choice(r) # chooses a random word from the word bank
+        line = random.randrange(5)
+
+        print(f'New Line #: {line + 1}')
+        print(f'New Word: {word}\n-----------')
+
+        # opens the file as write and rewrites the file with current week and new passphrase
+        with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'w') as txt:
+            txt.write(f'{week} ; {word} ; {line}')
+    
+        
+with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'r') as txt:
+    txt_r = txt.read().split(';')
+    line = int(txt_r[2].strip())
+    passc = txt_r[1].strip()
+
+
+
+
 
 
 
 # command handler v2
 class commandHandler:
+    # with open('timepass.txt', 'r') as txt:
+    #     txt_read = txt.read().split(';')
+
     def __init__(self,subject,From,body):
         #defines subject and from in the class
         self.subject = subject
         self.From = From
-        self.body = body
-        count = 1
-        for line in self.body.split('\n'): #beginning of passphrase checker
-            print(line)
-            if count == 3:
-                if line == 'passcod':
-                    print('allow')
-                else:
-                    print('not allowed')
-            count += 1
+        self.body = body.split('\n')
+
+        
 
         #used to check if any command ran properly
         self.tst = 0
     def check(self,func_name): # function used to check subject and from func_name would be the command name in the email
         if self.subject == func_name:
-            if self.From in users.keys():
-                self.tst = 1
-                return True
+            self.tst = 1
+
+            if self.body[line] == passc:
+                if self.From in users.keys():
+                    return True
+                else:
+                    print('User not Authenticated')
+                    return False
             else:
-                print('User not Authenticated')
-                return False
+                print('Incorrect Passphrase or Line')
 
     #commands start here
     def ping(self):
@@ -94,12 +125,12 @@ class commandHandler:
         self.restart()
 
 
-        # checks if any command was ran
+        # checks if any command was found
         if self.tst != 1:
-            print('command not found please try again')
+            print('command not found, please try again')
 
 
-# commandHandler('testing','1','line 1 \nline 2\npasscode\n').run()
+
 
 
 #connection
