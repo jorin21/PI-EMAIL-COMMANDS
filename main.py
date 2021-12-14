@@ -31,22 +31,23 @@ users = {
 }
 
 # code to check week and generate new word every week
-with open('timepass.txt', 'r') as txt:
-    txt_read = int(txt.read(2)) # opens and reads the first two characters to check the week
+with open('timepass.txt', 'r') as read_time:
+    week_DB = int(read_time.read(2)) # opens and reads the first two characters to check the week
 
-    if week - 1 == txt_read: # if the current week -1 is equal to the week inside of the file then a week has passed
-        print('New Week, Changing Line and Passphrase')
+    if week - 1 == week_DB: # if the current week -1 is equal to the week inside of the file then a week has passed
+        print('New Week, Changing Line and Passphrase\n-----------')
         r = open('words.txt').read().splitlines()
+
         word = random.choice(r) # chooses a random word from the word bank
         line = random.randrange(5)
+
         print(f'New Line #: {line + 1}')
-        print(f'New Word: {word}')
+        print(f'New Word: {word}\n-----------')
 
         # opens the file as write and rewrites the file with current week and new passphrase
         with open('timepass.txt', 'w') as txt:
             txt.write(f'{week} ; {word} ; {line}')
-    else:
-        print('not new week')
+    
         
 with open('timepass.txt', 'r') as txt:
     txt_r = txt.read().split(';')
@@ -129,7 +130,7 @@ class commandHandler:
             print('command not found, please try again')
 
 
-commandHandler('ping','jorgeeavila1@gmail.com','line 1 \ncounselin12g\ncounseling21\npasscode\nbruh').run()
+
 
 
 #connection
