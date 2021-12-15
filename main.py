@@ -129,7 +129,7 @@ class commandHandler:
     def stop(self):
         if self.check('stopscr'):
             print('Stopping Crontab Updates')
-            cmd = 'ping -c 2 localhost'
+            cmd = 'crontab -r'
             process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
 
