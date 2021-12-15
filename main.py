@@ -3,6 +3,7 @@ from email.header import decode_header
 from time import sleep
 from wakeonlan import send_magic_packet
 from datetime import datetime
+import smtplib, ssl
 import paramiko
 import imaplib
 import email
@@ -20,26 +21,52 @@ password = os.getenv('PASSWORD')
 imap_url = os.getenv('IMAPS')
 MAC = os.getenv('MACA')
 serv = os.getenv('SERV')
+sserv = os.getenv('SMTPS')
+port = os.getenv('SMTPPORT')
 SSHuser = os.getenv('SSHuser')
 SSHpass = os.getenv('SSHpass')
-week = int(datetime.now().strftime('%U'))
-
+week = datetime.now().strftime('%U')
 
 # authorized users and their identities 
 users = {
-    'jorgeeavila1@gmail.com' : 'Jorge Avila'
+    'jorgeeavila1@gmail.com' : 'Jorge Avila',
 }
+
+
+
+
+
+
+
+
+
 
 # code to check week and generate new word every week
 with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'r') as read_time:
-    week_DB = int(read_time.read(2)) # opens and reads the first two characters to check the week
-
-    if week - 1 == week_DB: # if the current week -1 is equal to the week inside of the file then a week has passed
+    week_DB = read_time.read(2) # opens and reads the first two characters to check the week
+    
+    if week != week_DB: # if the current week is not equal to the DB file, then begin the change of the line and passphrase
         print('New Week, Changing Line and Passphrase\n-----------')
         r = open('/home/pi/PI-EMAIL-COMMANDS/words.txt').read().splitlines()
 
         word = random.choice(r) # chooses a random word from the word bank
         line = random.randrange(5)
+
+
+        # Sends email to authorized users with new code and line
+        message = f"""Subject: New Passcode and Line
+
+        New Line #: {line + 1} 
+        New Word: {word} 
+
+        """
+        for user in users.keys():
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(sserv, port, context=context) as server:
+                server.login(username, password)
+                server.sendmail(username, user, message)
+
+
 
         print(f'New Line #: {line + 1}')
         print(f'New Word: {word}\n-----------')
@@ -47,24 +74,17 @@ with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'r') as read_time:
         # opens the file as write and rewrites the file with current week and new passphrase
         with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'w') as txt:
             txt.write(f'{week} ; {word} ; {line}')
-    
-        
+
+
+# reads log file for line number and passphrase
 with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'r') as txt:
     txt_r = txt.read().split(';')
     line = int(txt_r[2].strip())
     passc = txt_r[1].strip()
 
 
-
-
-
-
-
 # command handler v2
 class commandHandler:
-    # with open('timepass.txt', 'r') as txt:
-    #     txt_read = txt.read().split(';')
-
     def __init__(self,subject,From,body):
         #defines subject and from in the class
         self.subject = subject
@@ -72,7 +92,6 @@ class commandHandler:
         self.body = body.split('\n')
 
         
-
         #used to check if any command ran properly
         self.tst = 0
     def check(self,func_name): # function used to check subject and from func_name would be the command name in the email
@@ -107,7 +126,7 @@ class commandHandler:
     def stop(self):
         if self.check('stopscr'):
             print('Stopping Crontab Updates')
-            cmd = 'ping -c 2 localhost'
+            cmd = 'crontab -r'
             process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
 
