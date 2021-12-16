@@ -101,7 +101,7 @@ class commandHandler:
         if self.subject == func_name:
             self.tst = 1
 
-            if self.body[line] == passc:
+            if self.body[line].strip() == passc:
                 if self.From in users.keys():
                     return True
                 else:
