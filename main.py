@@ -148,6 +148,30 @@ Email Body:
         if self.check('restpc'):
             'restart code here'
 
+    def change(self):
+        if self.check('changepass'):
+            print('Changing Pass')
+            message = "Subject: Password Change" \
+                      "\nReply to this with new password and passphrase"
+            
+            
+            sendmail(message,self.From)
+        elif self.check('Re: Password Change'):
+            word = self.body[5].strip()
+            print(f"Changing Pass to '{word}'")
+
+            with open('timepass.txt', 'w') as newpass:
+                newpass.write(f'{week} ; {word} ; {line}')
+
+            with open('timepass.txt', 'r') as readpass:
+                r = readpass.read().split(';')[1].strip()
+            
+            if r == word:
+                print('Changed Pass Successfully')
+            else:
+                print('Something went wrong check the code')
+                
+
     #commands end here
     def run(self): #run function for easy addition of commands to both multipart and single part emails
         #add commands here
@@ -156,10 +180,11 @@ Email Body:
         self.turnoff()
         self.stop()
         self.restart()
+        self.change()
 
 
         # checks if any command was found
-        if self.tst != 1:
+        if self.tst < 1:
             print('command not found, please try again')
 
 
