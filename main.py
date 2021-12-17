@@ -33,8 +33,11 @@ users = {
 }
 
 
-
-
+def sendmail(message,user):
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL(sserv, port, context=context) as server:
+        server.login(username, password)
+        server.sendmail(username, user, message)
 
 
 
@@ -61,10 +64,7 @@ with open('timepass.txt', 'r') as read_time:
 
         """
         for user in users.keys():
-            context = ssl.create_default_context()
-            with smtplib.SMTP_SSL(sserv, port, context=context) as server:
-                server.login(username, password)
-                server.sendmail(username, user, message)
+            sendmail(message,user)
 
 
 
@@ -92,23 +92,37 @@ class commandHandler:
         #defines subject and from in the class
         self.subject = subject
         self.From = From
-        self.body = body.split('\n')
+        self.body = body
 
         
         #used to check if any command ran properly
         self.tst = 0
-    def check(self,func_name): # function used to check subject and from func_name would be the command name in the email
-        if self.subject == func_name:
+    def check(self,cmd_name): # function used to check subject and from, cmd_name would be the command name in the email
+        if self.subject == cmd_name:
             self.tst = 1
 
-            if self.body[line].strip() == passc:
-                if self.From in users.keys():
+            if self.From in users.keys():
+                self.body = self.body.split('\n')
+
+                if self.body[line].strip() == passc:
                     return True
+
                 else:
-                    print('User not Authenticated')
-                    return False
+                    print('Incorrect Passphrase or Line')
+
             else:
-                print('Incorrect Passphrase or Line')
+                print('User not Authenticated')
+                message = f"""Subject: Unauthorized Login Attempt
+
+Login Email: {self.From}
+Attempted Command: {self.subject}
+Email Body:
+{self.body}"""
+                
+                for user in users.keys():
+                    sendmail(message,user)
+                return False
+                
 
     #commands start here
     def ping(self):
