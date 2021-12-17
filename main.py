@@ -13,7 +13,7 @@ import random
 
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy()) 
-load_dotenv("/home/pi/PI-EMAIL-COMMANDS/.env")
+load_dotenv("./.env")
 
 # variables
 username = os.getenv('USERNAME1')
@@ -66,8 +66,6 @@ with open('timepass.txt', 'r') as read_time:
         for user in users.keys():
             sendmail(message,user)
 
-
-
         print(f'New Line #: {line + 1}')
         print(f'New Word: {word}\n-----------')
 
@@ -81,55 +79,6 @@ with open('timepass.txt', 'r') as txt:
     txt_r = txt.read().split(';')
     line = int(txt_r[2].strip())
     passc = txt_r[1].strip()
-
-
-
-
-
-
-
-
-# code to check week and generate new word every week
-with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'r') as read_time:
-    week_DB = read_time.read(2) # opens and reads the first two characters to check the week
-    
-    if week != week_DB: # if the current week is not equal to the DB file, then begin the change of the line and passphrase
-        print('New Week, Changing Line and Passphrase\n-----------')
-        r = open('/home/pi/PI-EMAIL-COMMANDS/words.txt').read().splitlines()
-
-        word = random.choice(r) # chooses a random word from the word bank
-        line = random.randrange(5)
-
-
-        # Sends email to authorized users with new code and line
-        message = f"""Subject: New Passcode and Line
-
-        New Line #: {line + 1} 
-        New Word: {word} 
-
-        """
-        for user in users.keys():
-            context = ssl.create_default_context()
-            with smtplib.SMTP_SSL(sserv, port, context=context) as server:
-                server.login(username, password)
-                server.sendmail(username, user, message)
-
-
-
-        print(f'New Line #: {line + 1}')
-        print(f'New Word: {word}\n-----------')
-
-        # opens the file as write and rewrites the file with current week and new passphrase
-        with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'w') as txt:
-            txt.write(f'{week} ; {word} ; {line}')
-
-
-# reads log file for line number and passphrase
-with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'r') as txt:
-    txt_r = txt.read().split(';')
-    line = int(txt_r[2].strip())
-    passc = txt_r[1].strip()
-
 
 # command handler v2
 class commandHandler:
