@@ -33,6 +33,54 @@ users = {
 }
 
 
+def sendmail(message,user):
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL(sserv, port, context=context) as server:
+        server.login(username, password)
+        server.sendmail(username, user, message)
+
+
+
+
+
+
+# code to check week and generate new word every week
+with open('timepass.txt', 'r') as read_time:
+    week_DB = read_time.read(2) # opens and reads the first two characters to check the week
+    
+    if week != week_DB: # if the current week is not equal to the DB file, then begin the change of the line and passphrase
+        print('New Week, Changing Line and Passphrase\n-----------')
+        r = open('words.txt').read().splitlines()
+
+        word = random.choice(r) # chooses a random word from the word bank
+        line = random.randrange(5)
+
+
+        # Sends email to authorized users with new code and line
+        message = f"""Subject: New Passcode and Line
+
+        New Line #: {line + 1} 
+        New Word: {word} 
+
+        """
+        for user in users.keys():
+            sendmail(message,user)
+
+
+
+        print(f'New Line #: {line + 1}')
+        print(f'New Word: {word}\n-----------')
+
+        # opens the file as write and rewrites the file with current week and new passphrase
+        with open('timepass.txt', 'w') as txt:
+            txt.write(f'{week} ; {word} ; {line}')
+
+
+# reads log file for line number and passphrase
+with open('timepass.txt', 'r') as txt:
+    txt_r = txt.read().split(';')
+    line = int(txt_r[2].strip())
+    passc = txt_r[1].strip()
 
 
 
@@ -85,27 +133,44 @@ with open('/home/pi/PI-EMAIL-COMMANDS/timepass.txt', 'r') as txt:
 
 # command handler v2
 class commandHandler:
+    # with open('timepass.txt', 'r') as txt:
+    #     txt_read = txt.read().split(';')
+
     def __init__(self,subject,From,body):
         #defines subject and from in the class
         self.subject = subject
         self.From = From
-        self.body = body.split('\n')
+        self.body = body
 
         
         #used to check if any command ran properly
         self.tst = 0
-    def check(self,func_name): # function used to check subject and from func_name would be the command name in the email
-        if self.subject == func_name:
+    def check(self,cmd_name): # function used to check subject and from, cmd_name would be the command name in the email
+        if self.subject == cmd_name:
             self.tst = 1
 
-            if self.body[line].strip() == passc:
-                if self.From in users.keys():
+            if self.From in users.keys():
+                self.body = self.body.split('\n')
+
+                if self.body[line].strip() == passc:
                     return True
+
                 else:
-                    print('User not Authenticated')
-                    return False
+                    print('Incorrect Passphrase or Line')
+
             else:
-                print('Incorrect Passphrase or Line')
+                print('User not Authenticated')
+                message = f"""Subject: Unauthorized Login Attempt
+
+Login Email: {self.From}
+Attempted Command: {self.subject}
+Email Body:
+{self.body}"""
+                
+                for user in users.keys():
+                    sendmail(message,user)
+                return False
+                
 
     #commands start here
     def ping(self):
