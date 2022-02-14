@@ -10,6 +10,7 @@ import email
 import os
 import subprocess
 import random
+import inspect
 
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy()) 
@@ -82,9 +83,6 @@ with open('timepass.txt', 'r') as txt:
 
 # command handler v2
 class commandHandler:
-    # with open('timepass.txt', 'r') as txt:
-    #     txt_read = txt.read().split(';')
-
     def __init__(self,subject,From,body):
         #defines subject and from in the class
         self.subject = subject
@@ -170,19 +168,24 @@ Email Body:
                 print('Changed Pass Successfully')
             else:
                 print('Something went wrong check the code')
+
+    def sendfiles(self):
+        if self.check('sendfiles'):
+            message = "It works!"
+            sendmail(message, self.From)
+
+
                 
 
     #commands end here
     def run(self): #run function for easy addition of commands to both multipart and single part emails
         #add commands here
-        self.ping()
-        self.turnon()
-        self.turnoff()
-        self.stop()
-        self.restart()
-        self.change()
-
-
+        
+        methods = inspect.getmembers(commandHandler, predicate=inspect.isfunction)
+        for method in methods:
+            if method[0] != '__init__' and method[0] != 'run' and method[0] != 'check':
+                method[1](self)
+                
         # checks if any command was found
         if self.tst < 1:
             print('command not found, please try again')
