@@ -231,6 +231,17 @@ Email Body:
             try:
                 dbx.files_delete('/zipdocs.zip')
 
+                f = open('zipdocs.zip', 'rb')
+                dbx.files_upload(bytes(f.read()), "/zipdocs.zip")
+                get = dbx.files_get_temporary_link("/zipdocs.zip").link
+
+                message = """Subject: Download Files
+
+Here is the link to download your files!:
+%s""" %get
+
+                sendmail(message, self.From)
+
             except:
                 f = open('zipdocs.zip', 'rb')
                 dbx.files_upload(bytes(f.read()), "/zipdocs.zip")
