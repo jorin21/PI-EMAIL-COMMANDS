@@ -228,16 +228,20 @@ Email Body:
             dbx.users_get_current_account()
             print("Successfully set up client!")
 
-            f = open('zipdocs.zip', 'rb')
-            dbx.files_upload(bytes(f.read()), "/zipdocs.zip")
-            get = dbx.files_get_temporary_link("/zipdocs.zip").link
+            try:
+                dbx.files_delete('/testfile.zip')
 
-            message = """Subject: Download Files
+            except:
+                f = open('zipdocs.zip', 'rb')
+                dbx.files_upload(bytes(f.read()), "/zipdocs.zip")
+                get = dbx.files_get_temporary_link("/zipdocs.zip").link
+
+                message = """Subject: Download Files
 
 Here is the link to download your files!:
 %s""" %get
 
-            sendmail(message, self.From)
+                sendmail(message, self.From)
                 
 
 #  __                                     #
