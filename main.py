@@ -229,7 +229,7 @@ Email Body:
             print("Successfully set up client!")
 
             try:
-                dbx.files_delete('/testfile.zip')
+                dbx.files_delete('/zipdocs.zip')
 
             except:
                 f = open('zipdocs.zip', 'rb')
