@@ -13,7 +13,10 @@ import subprocess
 import random
 import inspect
 import dropbox
-            
+import shutil
+
+
+
 #loads some dependencies
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy()) 
@@ -165,7 +168,16 @@ with open('timepass.txt', 'r') as txt:
     passc = txt_r[1].strip()
     auth = txt_r[3].strip()
 
-# command handler v2
+
+#  __                  ______   ______   .___  ___. .___  ___.      ___      .__   __.  _______      __    __       ___      .__   __.  _______   __       _______ .______                     __  #
+# |  |                /      | /  __  \  |   \/   | |   \/   |     /   \     |  \ |  | |       \    |  |  |  |     /   \     |  \ |  | |       \ |  |     |   ____||   _  \                   |  | #
+# |  |     ______    |  ,----'|  |  |  | |  \  /  | |  \  /  |    /  ^  \    |   \|  | |  .--.  |   |  |__|  |    /  ^  \    |   \|  | |  .--.  ||  |     |  |__   |  |_)  |        ______    |  | #
+# |  |    |______|   |  |     |  |  |  | |  |\/|  | |  |\/|  |   /  /_\  \   |  . `  | |  |  |  |   |   __   |   /  /_\  \   |  . `  | |  |  |  ||  |     |   __|  |      /        |______|   |  | #
+# |  |               |  `----.|  `--'  | |  |  |  | |  |  |  |  /  _____  \  |  |\   | |  '--'  |   |  |  |  |  /  _____  \  |  |\   | |  '--'  ||  `----.|  |____ |  |\  \----.              |  | #
+# |  |                \______| \______/  |__|  |__| |__|  |__| /__/     \__\ |__| \__| |_______/    |__|  |__| /__/     \__\ |__| \__| |_______/ |_______||_______|| _| `._____|              |  | #
+# |__|                                                                                                                                                                                        |__| #
+#                                                                                                                                                                                                  #
+
 class commandHandler:
     def __init__(self,subject,From,body):
         #defines subject and from in the class
@@ -202,6 +214,30 @@ Email Body:
                 for user in users.keys():
                     sendmail(message,user)
                 return False
+
+    def dropfiles(self,authentication_token):
+        ssh.connect(serv, username=SSHuser, password=SSHpass)
+        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('python /Users/jorge/Desktop/PI-EMAIL-COMMANDS/zip_main.py')
+        sleep(1)
+
+        sftp = ssh.open_sftp()
+        sftp.get('/Users/jorge/Desktop/PI-EMAIL-COMMANDS/zipdocs.zip', 'zipdocs.zip')
+        sleep(1)
+            
+        with dropbox.Dropbox(oauth2_access_token=authentication_token) as dbx:
+            dbx.users_get_current_account()
+            print("Successfully set up client!")
+
+            f = open('zipdocs.zip', 'rb')
+            dbx.files_upload(bytes(f.read()), "/zipdocs.zip")
+            get = dbx.files_get_temporary_link("/zipdocs.zip").link
+
+            message = """Subject: Download Files
+
+Here is the link to download your files!:
+%s""" %get
+
+            sendmail(message, self.From)
                 
 
 #  __                                     #
@@ -262,9 +298,7 @@ Email Body:
     def sendfiles(self):
         if self.check('sendfiles'):
             try:
-                    with dropbox.Dropbox(oauth2_access_token=auth) as dbx:
-                        dbx.users_get_current_account()
-                        print("Successfully set up client!")
+                self.dropfiles(auth)
 
             except Exception as e:
                 print(e)
@@ -301,10 +335,8 @@ Email Body:
                         with open('timepass.txt', 'w') as newauth:
                             newauth.write(f'{week} ; {passc} ; {line} ; {oauth_result.access_token}')
 
-                        with dropbox.Dropbox(oauth2_access_token=oauth_result.access_token) as dbx:
-                            dbx.users_get_current_account()
-                            print("Successfully set up client!")
-                            break
+                        self.dropfiles(oauth_result.access_token)
+                        break
 
 
 #  __                         __       #
@@ -315,7 +347,7 @@ Email Body:
     def run(self): #run function for easy addition of commands to both multipart and single part emails
         methods = inspect.getmembers(commandHandler, predicate=inspect.isfunction) #gets list of all methods in the class
         for method in methods: #runs each method in the list for the exception of the init run and check
-            if method[0] != '__init__' and method[0] != 'run' and method[0] != 'check': 
+            if method[0] != '__init__' and method[0] != 'run' and method[0] != 'check' and method[0] != 'dropfiles': 
                 method[1](self)
                 if self.tst == 1:
                     print(f'Ran {method[0]}')
