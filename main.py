@@ -4,6 +4,10 @@ from time import sleep
 from wakeonlan import send_magic_packet
 from datetime import datetime
 from dropbox import DropboxOAuth2FlowNoRedirect
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import smtplib, ssl
 import paramiko
 import imaplib
@@ -13,7 +17,7 @@ import subprocess
 import random
 import inspect
 import dropbox
-import shutil
+
 
 
 
@@ -45,11 +49,42 @@ users = {
 }
 
 #defines a function that starts an SMTP connection to send mail
-def sendmail(message,user):
+def sendmail(body,subject,user,attachments = (False, '')):
+    message = MIMEMultipart()
+    message["From"] = username
+    message["To"] = user
+    message["Subject"] = subject
+
+    message.attach(MIMEText(body, "plain"))
+
+    if attachments[0]:
+
+        filename = attachments[1]
+
+        
+        with open(filename, "rb") as attachment:
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+
+            
+        encoders.encode_base64(part)
+
+        
+        part.add_header(
+            "Content-Disposition",
+            f"attachment; filename= {filename}",
+        )
+
+        
+        message.attach(part)
+        
+        
+    strings = message.as_string()
+
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL(sserv, port, context=context) as server:
         server.login(username, password)
-        server.sendmail(username, user, message)
+        server.sendmail(username, user, strings)
 
 
 # defines function used to read email and whether to run the commandHandler
@@ -144,14 +179,13 @@ with open('timepass.txt', 'r') as read_time:
         auth = read_time.read().split(';')[3].strip()
         
         # Sends email to authorized users with new code and line
-        message = f"""Subject: New Passcode and Line
-
+        subject = "New Passcode and Line"
+        body = f""" \
         New Line #: {line + 1} 
         New Word: {word} 
-
         """
         for user in users.keys():
-            sendmail(message,user)
+            sendmail(body,subject,user)
 
         print(f'New Line #: {line + 1}')
         print(f'New Word: {word}\n-----------')
@@ -159,6 +193,8 @@ with open('timepass.txt', 'r') as read_time:
         # opens the file as write and rewrites the file with current week and new passphrase
         with open('timepass.txt', 'w') as txt:
             txt.write(f'{week} ; {word} ; {line} ; {auth}')
+
+
 
         
 # reads log file for line number, passphrase, and Dropbox Auth Code
