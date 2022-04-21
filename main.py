@@ -391,19 +391,7 @@ Here is the link to download your files!:
             output, error = process.communicate()
             print('service stoppped')
 
-            try:
-                import picamera
-
-            except:
-                'not work'
-            camera = picamera.PiCamera()
-
-            camera.start_preview()
-            sleep(2)
-
-            camera.capture('snapshot.jpg')
-
-            camera.stop_preview
+            exec(open('testcam.py').read())
 
             current_time = datetime.now().strftime('%m/%d/%Y - %H:%M:%S')
             subject = f'Snapshot from {current_time}'
@@ -418,10 +406,6 @@ Here is the link to download your files!:
             process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
             print('webcamd service started')
-
-
-
-
 
 #  __                         __       #
 # /   _ __ __  _ __  _| _    |_ __  _| #
