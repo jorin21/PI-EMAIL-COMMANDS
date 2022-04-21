@@ -383,6 +383,46 @@ Here is the link to download your files!:
                         break
 
 
+    def snap(self):
+        if self.check('snap'):
+            print('stopping webcamd service')
+            cmd = 'sudo service webcamd stop'
+            process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+            output, error = process.communicate()
+            print('service stoppped')
+
+            try:
+                import picamera
+
+            except:
+                'not work'
+            camera = picamera.PiCamera()
+
+            camera.start_preview()
+            sleep(2)
+
+            camera.capture('snapshot.jpg')
+
+            camera.stop_preview
+
+            current_time = datetime.now().strftime('%m/%d/%Y - %H:%M:%S')
+            subject = f'Snapshot from {current_time}'
+            message = 'See attached for image'
+            attachment = (True, 'snapshot.jpg')
+
+            sendmail(message, subject, self.From, attachment)
+            print('sent picture...starting service')
+            
+
+            cmd = 'sudo service webcamd start'
+            process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+            output, error = process.communicate()
+            print('webcamd service started')
+
+
+
+
+
 #  __                         __       #
 # /   _ __ __  _ __  _| _    |_ __  _| #
 # \__(_)||||||(_|| |(_|_>    |__| |(_| #
