@@ -240,15 +240,15 @@ class commandHandler:
 
             else:
                 print('User not Authenticated')
-                message = f"""Subject: Unauthorized Login Attempt
-
+                e_subject = 'Unauthorized Login Attempt'
+                message = f"""
 Login Email: {self.From}
 Attempted Command: {self.subject}
 Email Body:
 {self.body}"""
                 
                 for user in users.keys():
-                    sendmail(message,user)
+                    sendmail(message,e_subject,user)
                 return False
 
     def dropfiles(self,authentication_token):
@@ -267,28 +267,20 @@ Email Body:
             try:
                 dbx.files_delete('/zipdocs.zip')
 
-                f = open('zipdocs.zip', 'rb')
-                dbx.files_upload(bytes(f.read()), "/zipdocs.zip")
-                get = dbx.files_get_temporary_link("/zipdocs.zip").link
-
-                message = """Subject: Download Files
-
-Here is the link to download your files!:
-%s""" %get
-
-                sendmail(message, self.From)
-
             except:
-                f = open('zipdocs.zip', 'rb')
-                dbx.files_upload(bytes(f.read()), "/zipdocs.zip")
-                get = dbx.files_get_temporary_link("/zipdocs.zip").link
+                'was not able to delete'
 
-                message = """Subject: Download Files
+            f = open('zipdocs.zip', 'rb')
+            dbx.files_upload(bytes(f.read()), "/zipdocs.zip")
+            get = dbx.files_get_temporary_link("/zipdocs.zip").link
 
+
+            e_subject = 'Download Files'
+            message = """ \
 Here is the link to download your files!:
 %s""" %get
 
-                sendmail(message, self.From)
+            sendmail(message, e_subject, self.From)
                 
 
 #  __                                     #
@@ -326,11 +318,11 @@ Here is the link to download your files!:
     def change(self):
         if self.check('changepass'):
             print('Changing Pass')
-            message = "Subject: Password Change" \
-                      "\nReply to this with new password on 6th line and passphrase"
+            e_subject = 'Password Change'
+            message = "Reply to this with new password on 6th line and passphrase"
             
             
-            sendmail(message,self.From)
+            sendmail(message,e_subject,self.From)
         elif self.check('Re: Password Change'):
             word = self.body[5].strip()
             print(f"Changing Pass to '{word}'")
@@ -362,13 +354,14 @@ Here is the link to download your files!:
 
                 authorize_url = auth_flow.start()
                 print(authorize_url)
-                message = """Subject: DropBox API Call
 
+                e_subject = 'DropBox API Call'
+                message = """ \
 1. Go to %s
 2. Click "Allow" (you might have to log in first).
 3. Copy the authorization reply to this email with it""" %authorize_url
 
-                sendmail(message, self.From)
+                sendmail(message, e_subject, self.From)
             
                 while True:
                     subject, From, body = readmail(run_commandHandler=False)
